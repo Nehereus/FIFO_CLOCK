@@ -7,7 +7,7 @@ public class Main {
     public void FIFO(Page[] pages, int capacity){
 
         Queue<Integer> queue = new LinkedList<>();
-        Set<Integer> set = new HashSet<>();
+        List<Integer> list = new LinkedList<>();
         int faults = 0;
 
         for(Page page: pages){
@@ -18,10 +18,10 @@ public class Main {
 
             if(page.getProb() > randomProb){
                 //frame is not full
-                if(set.size() < capacity){
+                if(list.size() < capacity){
                     //test if the page number already exist
-                    if(!set.contains(pageNum)){
-                        set.add(pageNum);
+                    if(!list.contains(pageNum)){
+                        list.add(pageNum);
                         faults ++;
                         queue.add(pageNum);
                         System.out.println(queue.toString());
@@ -30,12 +30,14 @@ public class Main {
                 //frame is full
                 else{
                     //test if the page number already exist
-                    if(!set.contains(pageNum)){
-                        set.remove(queue.poll());
-                        set.add(pageNum);
+                    if(!list.contains(pageNum)){
+                        int index = list.indexOf(queue.poll());
+                        list.set(index,pageNum);
+//                        list.remove(queue.poll());
+//                        list.add(pageNum);
                         queue.add(pageNum);
                         faults ++;
-                        System.out.println(queue.toString());
+                        System.out.println(list.toString());
                     }
                 }
             }
@@ -43,7 +45,7 @@ public class Main {
         System.out.println("Number of faults is: " + faults);
     }
 
-    //the only helper method for CLOCK: return the index of page in the list
+    //the helper method for CLOCK: return the index of page in the list
     //return -1 if not contained
     public int indexOfContainedPage(List<Page> list, int pageNum){
         for(int i = 0; i < list.size(); i++ ){
@@ -53,10 +55,24 @@ public class Main {
         return -1;
     }
 
+    public void print(List<Page> pages){
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for(Page page1: pages){
+            builder.append(page1.getNum());
+            builder.append(',');
+        }
+        builder.deleteCharAt(builder.length() -1);
+        builder.append("]");
+        System.out.println(builder.toString());
+    }
+
+
     public void CLOCK(Page[] pages, int capacity){
 
         List<Page> storage = new LinkedList<>();
-
+        List<Page> process = new LinkedList<>();
+        int counter = 0;
         int faults = 0;
         for(Page page: pages){
                 //test probability
@@ -73,15 +89,8 @@ public class Main {
                         if(pageIndex == -1){
                             storage.add(page);
                             faults ++;
-                            StringBuilder builder = new StringBuilder();
-                            builder.append("[");
-                            for(Page page1: storage){
-                                builder.append(page1.getNum());
-                                builder.append(',');
-                            }
-                            builder.deleteCharAt(builder.length() -1);
-                            builder.append("]");
-                            System.out.println(builder.toString());
+                            process.add(page);
+                            print(process);
                         }
                         else{
                             storage.get(pageIndex).grantSecondChance();
@@ -96,23 +105,16 @@ public class Main {
                                 Page temp = storage.remove(0);
                                 temp.cancelSecondChance();
                                 storage.add(temp);
+                                counter = (counter+1) % capacity ;
                             }
                             //page without second chance
                             storage.remove(0);
                             //add new number to the end, prob does not matter here
                             storage.add(new Page(pageNum,1));
                             faults ++;
-                            StringBuilder builder = new StringBuilder();
-                            builder.append("[");
-                            for(Page page1: storage){
-                                builder.append(page1.getNum());
-                                builder.append(',');
-                            }
-                            builder.deleteCharAt(builder.length() -1);
-                            builder.append("]");
-                            System.out.println(builder.toString());
-//                            Set<Integer> numSet = storage.stream().unordered().map(Page::getNum).collect(Collectors.toSet());
-//                            System.out.println(numSet.toString());
+                            process.set(counter,new Page(pageNum,1));
+                            print(process);
+                            counter = (counter+1) % capacity ;
                         }
                         else{
                             storage.get(pageIndex).grantSecondChance();
@@ -125,11 +127,11 @@ public class Main {
 
 
     public void tests(String test, Page[] pages) {
-        //case1: equi-probable test 60% for each
+        //case1: equi-probable test: 60% for each
         //case2: strongly biased probability for lower-numbered pages to be requested
-        //probability is distributed as e^(-0.2*num)
+        //the exponential distribution of probability is 0.7e^(-0.7*num)
         //case 3： very strongly biased probability to request any of 3<k<10 pages
-        //probability is 90% for 3<k<10; other wise e^(-0.2*num)
+        //probability is 90% for 3<k<10; other wise 0.7e^(-0.7*num)
         switch (test) {
             case ("test1") -> {
                 for (Page page : pages) {
@@ -148,7 +150,7 @@ public class Main {
             }
             case ("test2") -> {
                 for (Page page : pages) {
-                    page.setProb(Math.exp(-0.2 * page.getNum()));
+                    page.setProb(0.7 * Math.exp(-0.7 * page.getNum()));
                 }
                 System.out.println("Test2:");
                 System.out.println("FIFO test for frame size 3:");
@@ -166,7 +168,7 @@ public class Main {
                     if (page.getNum() < 10 && page.getNum() > 3) {
                         page.setProb(0.9);
                     } else
-                        page.setProb(Math.exp(-0.2 * page.getNum()));
+                        page.setProb(0.7 * Math.exp(-0.7 * page.getNum()));
                 }
                 System.out.println("Test3:");
                 System.out.println("FIFO test for frame size 3:");
