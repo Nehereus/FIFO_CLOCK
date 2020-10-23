@@ -73,8 +73,15 @@ public class Main {
                         if(pageIndex == -1){
                             storage.add(page);
                             faults ++;
-                            Set<Integer> numSet = storage.stream().map(Page::getNum).collect(Collectors.toSet());
-                            System.out.println(numSet.toString());
+                            StringBuilder builder = new StringBuilder();
+                            builder.append("[");
+                            for(Page page1: storage){
+                                builder.append(page1.getNum());
+                                builder.append(',');
+                            }
+                            builder.deleteCharAt(builder.length() -1);
+                            builder.append("]");
+                            System.out.println(builder.toString());
                         }
                         else{
                             storage.get(pageIndex).grantSecondChance();
@@ -95,8 +102,17 @@ public class Main {
                             //add new number to the end, prob does not matter here
                             storage.add(new Page(pageNum,1));
                             faults ++;
-                            Set<Integer> numSet = storage.stream().map(Page::getNum).collect(Collectors.toSet());
-                            System.out.println(numSet.toString());
+                            StringBuilder builder = new StringBuilder();
+                            builder.append("[");
+                            for(Page page1: storage){
+                                builder.append(page1.getNum());
+                                builder.append(',');
+                            }
+                            builder.deleteCharAt(builder.length() -1);
+                            builder.append("]");
+                            System.out.println(builder.toString());
+//                            Set<Integer> numSet = storage.stream().unordered().map(Page::getNum).collect(Collectors.toSet());
+//                            System.out.println(numSet.toString());
                         }
                         else{
                             storage.get(pageIndex).grantSecondChance();
@@ -189,5 +205,6 @@ public class Main {
         main.tests("test1", testPages);
         main.tests("test2", testPages);
         main.tests("test3", testPages);
+
     }
 }
